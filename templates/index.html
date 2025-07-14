@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Smart Attendance AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Smart Attendance AI Dashboard</h1>
+            <p class="subtitle">HR Monitoring System with AI-Powered Insights</p>
+            <div style="text-align: right; margin-bottom: 20px;">
+            <a href="/download/excel" class="btn-download">⬇️ Download Excel</a>
+            <a href="/download/pdf" class="btn-download">⬇️ Download PDF</a>
+            </div>
+        </header>
+
+        <section class="metrics">
+            <div class="card">👥<br><span>{{ total_karyawan }}</span><br>Karyawan</div>
+            <div class="card">✅<br><span>{{ total_hadir }}</span><br>Hadir</div>
+            <div class="card">🚫<br><span>{{ total_alfa }}</span><br>Alfa</div>
+            <div class="card">💊<br><span>{{ total_sakit }}</span><br>Sakit</div>
+        </section>
+
+        <form method="get" style="text-align:right; margin-bottom: 20px;">
+            <label for="id">🔍 Filter Karyawan:</label>
+            <select name="id" onchange="this.form.submit()" style="padding: 6px; border-radius: 6px;">
+            <option value="ALL">Semua</option>
+                {% for karyawan in karyawan_list %}
+            <option value="{{ karyawan['ID'] }}" {% if selected_id == karyawan['ID'] %}selected{% endif %}>
+                {{ karyawan['Nama'] }}
+            </option>
+                {% endfor %}
+            </select>
+        </form>
+
+        <hr>
+
+        <section>
+            <h2>📋 Ringkasan Absensi Karyawan</h2>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nama</th>
+                            <th>Hadir</th>
+                            <th>Alfa</th>
+                            <th>Sakit</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in summary %}
+                        <tr>
+                            <td>{{ row['ID'] }}</td>
+                            <td>{{ row['Nama'] }}</td>
+                            <td>{{ row['Hadir'] }}</td>
+                            <td>{{ row['Alfa'] }}</td>
+                            <td>{{ row['Sakit'] }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section>
+            <h2>🚨 Potensi Karyawan Bolos</h2>
+            {% if suspects %}
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nama</th>
+                            <th>Jumlah Alfa</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in suspects %}
+                        <tr>
+                            <td>{{ row['ID'] }}</td>
+                            <td>{{ row['Nama'] }}</td>
+                            <td>{{ row['Alfa'] }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+                <p class="success">✅ Tidak ditemukan karyawan dengan potensi bolos.</p>
+            {% endif %}
+        </section>
+
+        <section>
+            <h2>📌 Pola Bolos Senin / Jumat</h2>
+            {% if pola %}
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nama</th>
+                            <th>Hari</th>
+                            <th>Jumlah Alfa</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in pola %}
+                        <tr>
+                            <td>{{ row['ID'] }}</td>
+                            <td>{{ row['Nama'] }}</td>
+                            <td>{{ row['Hari'] }}</td>
+                            <td>{{ row['Alfa'] }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+                <p class="success">✅ Tidak ada pola bolos mencurigakan.</p>
+            {% endif %}
+        </section>
+
+        <section>
+        <h2>📊 Grafik Status Kehadiran</h2>
+        <div class="chart-wrapper">
+            <div class="chart-container">
+                <canvas id="statusPie"></canvas>
+        </div>
+            <div class="chart-info">
+            <h3>Status Kehadiran</h3>
+            <ul>
+                <li><span class="dot hadir"></span> Hadir: {{ status_counts['Hadir'] }}</li>
+                <li><span class="dot alfa"></span> Alfa: {{ status_counts['Alfa'] }}</li>
+                <li><span class="dot sakit"></span> Sakit: {{ status_counts['Sakit'] }}</li>
+            </ul>
+        </div>
+    </div>
+    </section>
+        <footer>
+            <p>🚀 Dibuat oleh <strong>Zaidan Mahfudz</strong> • Smart Attendance Simulation • 2025</p>
+        </footer>
+    </div>
+
+    <script>
+    const ctx = document.getElementById('statusPie').getContext('2d');
+    const statusPie = new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: ['Hadir', 'Alfa', 'Sakit'],
+            datasets: [{
+                label: 'Status Kehadiran',
+                data: [
+                    {{ status_counts['Hadir'] }},
+                    {{ status_counts['Alfa'] }},
+                    {{ status_counts['Sakit'] }}
+                ],
+                backgroundColor: ['#2ecc71', '#e74c3c', '#f1c40f'],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        color: '#fff'
+                    }
+                }
+            }
+        }
+    });
+</script>
+</body>
+</html>
